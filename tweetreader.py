@@ -1,5 +1,6 @@
 import json
 import csv
+import os
 
 TWEET_DIR = 'data/tweets/'
 
@@ -19,8 +20,8 @@ def read_tsv_map(tsvfile):
         tsv[row[0]] = row[1]
     return tsv
 
-def read(csvfile):
-    files = (row[2] + '.json' for row in _read_csv(csvfile))
-    jsons = (_read_json(TWEET_DIR + file) for file in files)
-    
-    return jsons
+def read(jsondir):
+    jsons = (_read_json(jsondir + f) for f in os.listdir(jsondir))
+    for json in jsons:
+      for tweet in json:
+        yield tweet
