@@ -6,6 +6,7 @@ from nltk.tag import pos_tag
 import os
 import pickle
 import re
+import string
 from time import mktime, strptime
 
 import tweetreader as reader
@@ -219,8 +220,7 @@ def _parse_tweets(tweets_dir, f):
         # text
         tweet['text'] = json['text']
         tweet['unigrams'], tweet['tagged_unigrams'] = _parse_text(json['text'])
-        
-        line = ' '.join(tweet['unigrams'])
+        line = ' '.join(u for u in tweet['unigrams'] if u not in string.punctuation)
         f(line)
         
         '''
