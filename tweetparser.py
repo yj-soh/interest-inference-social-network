@@ -3,23 +3,20 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tag import pos_tag
+import os
 import pickle
 import re
 from time import mktime, strptime
 
-import reader
+import tweetreader as reader
 
 FILES = {
     'training': {
-        'in': 'data/training.csv',
+        'in': 'data/train/Twitter/',
         'out': 'data/generated/training_tweets.txt'
     },
-    'development': {
-        'in': 'data/development.csv',
-        'out': 'data/generated/development_tweets.txt'
-    },
     'testing': {
-        'in': 'data/testing.csv',
+        'in': 'data/test/Twitter/',
         'out': 'data/generated/testing_tweets.txt'
     }
 }
@@ -29,8 +26,6 @@ options = {
     'force_lowercase': True,
     'trim_repeat_char': True,
     'lemma': False,
-    'negation': True,
-    # 'escape_special': True,
     'replace_slang': False,
     'no_hash_hashtags': True
 }
@@ -90,23 +85,12 @@ re_str_words_etc = r'''
     (?:\S)                         # Everything else that isn't whitespace.
     '''
 
-re_str_negation = r'''
-    (?:
-        ^(?:never|no|nothing|nowhere|noone|none|not|
-            havent|hasnt|hadnt|cant|couldnt|shouldnt|
-            wont|wouldnt|dont|doesnt|didnt|isnt|arent|aint
-        )$
-    )
-    |
-    .*n't'''
-
 re_emoji = re.compile(re_str_emoji, re.UNICODE)
 re_emoticon = re.compile(re_str_emoticon, re.VERBOSE | re.I | re.UNICODE)
 re_words = re.compile(re_str_emoticon + '|' + re_str_words_meta + '|' + re_str_words + '|' + re_str_words_etc, \
                       re.VERBOSE | re.I | re.UNICODE)
 re_words_only = re.compile(re_str_words, re.VERBOSE | re.I | re.UNICODE)
 re_repeat_char = re.compile(r'(.)\1+')
-re_negation = re.compile(re_str_negation, re.VERBOSE)
 re_clause_punctuation = re.compile('^[.:;!?]$')
 
 def _get_unigrams(text):
@@ -163,44 +147,6 @@ def _process_word(word, tag):
     
     return word
 
-def _negate_range(words, start, end):
-    negation = map(lambda w: NEGATION + w if re_words_only.match(w) else w, words[start:end])
-    return words[:start] + negation + words[end:]
-
-def _handle_negation(words):
-    negations = []
-    punctuations = []
-    is_negation_next = True
-    
-    # alternates indices between negation and punctuation
-    for idx, word in enumerate(words):
-        if is_negation_next and re_negation.match(word):
-            negations.append(idx + 1)
-            is_negation_next = False
-        if not is_negation_next and re_clause_punctuation.match(word):
-            punctuations.append(idx)
-            is_negation_next = True
-    # negates everything ahead if no punctuation found
-    punctuations.append(len(words))
-    
-    if not negations:
-        return words
-    
-    negation_ranges = zip(negations, punctuations)
-    
-    for negation_range in negation_ranges:
-        start, end = negation_range
-        words = _negate_range(words, start, end)
-    
-    return words
-
-'''
-def _escape_special(str):
-    for c in escape_words:
-        str = str.replace(c, escape_words[c])
-    return str
-'''
-
 def extract_emoji(text):
     emoji = re_emoji.findall(text)
     text = re_emoji.sub('', text)
@@ -233,18 +179,10 @@ def _parse_text(tweet):
     tags = [w[1] for w in rtweet]
     
     # after-splitting operations
-    if options['negation']:
-        words = _handle_negation(words)
-    '''
-    if options['escape_special']:
-        words = map(_escape_special, words)
-    '''
     # rtweet = remove punctuation?
     
     # repack into tuples
     rtweet = zip(words, tags)
-    
-    rtweet.extend((e, 'NN') for e in emoji)
     
     return [w[0] for w in rtweet], rtweet
 
@@ -263,7 +201,7 @@ def _extend_if_exists(src, src_key, dst, dst_key):
     except KeyError:
         pass
 
-def _parse_tweets(tweets_csv, f):
+def _parse_tweets(tweets_dir, f):
     '''
     format of each tweet: {
       text: string, original text of tweet msg,
@@ -275,13 +213,17 @@ def _parse_tweets(tweets_csv, f):
       fav_count: int, no. of times favorited
     }
     '''
-    for json in reader.read(tweets_csv):
+    for json in reader.read(tweets_dir):
         tweet = {}
         
         # text
         tweet['text'] = json['text']
         tweet['unigrams'], tweet['tagged_unigrams'] = _parse_text(json['text'])
         
+        line = ' '.join(tweet['unigrams'])
+        f(line)
+        
+        '''
         # datetime
         tweet['datetime'] = _parse_datetime(json['created_at'])
         
@@ -295,24 +237,38 @@ def _parse_tweets(tweets_csv, f):
         tweet['rt_count'] = json['retweet_count']
         tweet['fav_count'] = json['favorite_count']
         
-        f(tweet)
+        f(tweet)'''
 
 def parse_all_files(new_options=options):
-    files = [FILES['training'], FILES['testing'], FILES['development']]
+    files = [FILES['training'], FILES['testing']]
     
     options = new_options
     
     for type in files:
-        tweets_csv = type['in']
+        all_tweets_dir = type['in']
     
         # toss everything into memory; should be fine due to data's size
         tweets = []
-        def collect(tweet):
-            tweets.append(tweet)
-        _parse_tweets(tweets_csv, collect)
         
-        f = open(type['out'], 'wb')
-        pickle.dump(tweets, f, -1)
+        dirs = os.listdir(all_tweets_dir)
+        dirs = [d[1:] for d in dirs]
+        dirs = sorted(sorted(dirs), key=lambda s: len(s))
+        dirs = ['U' + d for d in dirs]
+        
+        f = open(type['out'], 'w')
+        for dir in dirs:
+            tweets = []
+            
+            def collect(tweet):
+                tweets.append(tweet)
+            _parse_tweets(all_tweets_dir + dir, collect)
+            
+            line = ' '.join(tweets)
+            
+            f.write(line + '\n')
+            
+        #f = open(type['out'], 'w')
+        #f.write('\n'.join(tweets))
         f.close()
 
 if __name__ == '__main__':
