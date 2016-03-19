@@ -44,8 +44,7 @@ def parse_html(html):
     words.extend(parse_content(html_soup.findAll('p', {'class': 'title'})))
     words.extend(parse_content(html_soup.findAll('p', {'class': 'description'})))
     words.extend(parse_content(html_soup.findAll('a', {'class': 'endorse-item-name-text'})))
-    words.extend(parse_content(html_soup.findAll('a', {'class': 'endorse-item-name-text'})))
-    
+
     return words
 
 def parse(directory, output_file):
