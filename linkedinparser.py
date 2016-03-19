@@ -31,12 +31,6 @@ def parse(directory, output_file):
     directory_files = os.listdir(directory)
     directory_files.sort(key=alphanum_key)
 
-    with open(directory + '/U4.html', 'r') as content_file:
-        html = content_file.read()
-
-    html_soup = BeautifulSoup(html, 'html.parser')
-    description_contents = html_soup.findAll('p', {'class': 'description summary-field-show-more'})
-
     output_array = []
     for html_file in directory_files:
         with open(directory + '/' + html_file, 'r') as content_file:
@@ -61,3 +55,4 @@ def parse(directory, output_file):
 
 if __name__ == '__main__':
     parse(LINKEDIN_TRAINING_DIRECTORY, LINKEDIN_TRAINING_FILE)
+    parse(LINKEDIN_TESTING_DIRECTORY, LINKEDIN_TESTING_FILE)
