@@ -1,6 +1,5 @@
 import numpy as np
 import pickle
-import csv
 # classifiers
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -23,8 +22,7 @@ class Classifier:
     # saves overall results in results_file. Returns [recall, precision, F1]
     def predict_testing_data(self, social_media, testing_features, results_file):
         result_labels = self.classifiers[social_media].predict(testing_features)
-        csv_writer = csv.writer(open(results_file, 'wb'))
-        csv_writer.writerows(result_labels)
+        np.savetxt(results_file, result_labels.astype(int), fmt='%i', delimiter=',')
 
 if __name__ == '__main__':
     classifier = Classifier()
