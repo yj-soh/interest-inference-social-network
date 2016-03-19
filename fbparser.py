@@ -30,6 +30,7 @@ re_str_static_terms = r'Automatically Translated  See Original|Comment|Edited|Li
 
 re_fb_terms = re.compile(re_str_date + '|' + re_str_actions + '|' + re_str_social + '|' + re_str_static_terms, re.UNICODE)
 re_numbers = re.compile(r'\d+')
+re_punctuation = '[%s]' % re.escape(string.punctuation)
 
 def _parse_text(text):
     # remove fb terms
@@ -39,7 +40,7 @@ def _parse_text(text):
     text = re.sub(re_numbers, '', text)
     
     # remove punctuation
-    text = text.translate(string.maketrans('', ''), string.punctuation)
+    text = re.sub(re_punctuation, ' ', text)
     
     # force lowercase
     text = text.lower()
