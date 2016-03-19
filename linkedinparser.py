@@ -27,6 +27,27 @@ LINKEDIN_TESTING_FILE = 'data/generated/testing_linkedin.txt'
 
 stopwords = map(lambda s:str(s), stopwords.words('english'))
 
+def parse_html(html):
+    def parse_content(soup_content):
+        words = []
+        for html_content in soup_content:
+            content = ' '.join([c for c in html_content.contents if not type(c) is bs4.element.Tag])
+            tokens = [e.lower() for e in map(string.strip, re.split('(\W+)', content)) if len(e) > 0 and not re.match('\W',e)]
+            for token in tokens:
+                if not token in stopwords:
+                    words.append(token)
+        return words
+
+    html_soup = BeautifulSoup(html, 'html.parser')
+
+    words = []
+    words.extend(parse_content(html_soup.findAll('p', {'class': 'title'})))
+    words.extend(parse_content(html_soup.findAll('p', {'class': 'description'})))
+    words.extend(parse_content(html_soup.findAll('a', {'class': 'endorse-item-name-text'})))
+    words.extend(parse_content(html_soup.findAll('a', {'class': 'endorse-item-name-text'})))
+    
+    return words
+
 def parse(directory, output_file):
     directory_files = os.listdir(directory)
     directory_files.sort(key=alphanum_key)
@@ -36,18 +57,7 @@ def parse(directory, output_file):
         with open(directory + '/' + html_file, 'r') as content_file:
             html = content_file.read()
 
-        html_soup = BeautifulSoup(html, 'html.parser')
-        description_contents = html_soup.findAll('p', {'class': 'description summary-field-show-more'})
-
-        words = []
-        for html_content in description_contents:
-            content = ' '.join([c for c in html_content.contents if not type(c) is bs4.element.Tag])
-            tokens = [e.lower() for e in map(string.strip, re.split('(\W+)', content)) if len(e) > 0 and not re.match('\W',e)]
-            for token in tokens:
-                if not token in stopwords:
-                    words.append(token)
-
-        output_array.append(words)
+        output_array.append(parse_html(html))
 
     f = open(output_file, 'wb')
     csv_writer = csv.writer(f, delimiter =' ')
