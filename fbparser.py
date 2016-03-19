@@ -1,6 +1,7 @@
 import codecs
 import os
 import re
+import string
 
 FILES = {
     'training': {
@@ -28,9 +29,23 @@ re_str_social = r'\|By|View \d+ more comments?|View \d+ more [replies|reply]|\d+
 re_str_static_terms = r'Automatically Translated  See Original|Comment|Edited|Like|Remove|Reply|See Translation|Share|Water Later|Write a comment... Press Enter to post.|\w+ emoticon'
 
 re_fb_terms = re.compile(re_str_date + '|' + re_str_actions + '|' + re_str_social + '|' + re_str_static_terms, re.UNICODE)
+re_numbers = re.compile(r'\d+')
 
 def _parse_text(text):
+    # remove fb terms
     text = re.sub(re_fb_terms, '', text)
+    
+    # remove numbers
+    text = re.sub(re_numbers, '', text)
+    
+    # remove punctuation
+    text = text.translate(string.maketrans('', ''), string.punctuation)
+    
+    # force lowercase
+    text = text.lower()
+    
+    # remove excessive whitespace
+    text = u' '.join(text.split())
     
     return text
 
