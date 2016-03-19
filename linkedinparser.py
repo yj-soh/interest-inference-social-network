@@ -1,0 +1,63 @@
+import bs4
+from bs4 import BeautifulSoup
+import nltk
+from nltk.corpus import stopwords
+import os
+import re
+import string
+import csv
+
+# utility functions for sorting files in directory
+def tryint(s):
+    try:
+        return int(s)
+    except:
+        return s
+
+def alphanum_key(s):
+    """ Turn a string into a list of string and number chunks.
+        "z23a" -> ["z", 23, "a"]
+    """
+    return [tryint(c) for c in re.split('([0-9]+)', s)]
+
+LINKEDIN_TRAINING_DIRECTORY = 'data/train/LinkedIn'
+LINKEDIN_TESTING_DIRECTORY = 'data/test/LinkedIn'
+LINKEDIN_TRAINING_FILE = 'data/generated/training_linkedin.txt'
+LINKEDIN_TESTING_FILE = 'data/generated/testing_linkedin.txt'
+
+stopwords = map(lambda s:str(s), stopwords.words('english'))
+
+def parse(directory, output_file):
+    directory_files = os.listdir(directory)
+    directory_files.sort(key=alphanum_key)
+
+    with open(directory + '/U4.html', 'r') as content_file:
+        html = content_file.read()
+
+    html_soup = BeautifulSoup(html, 'html.parser')
+    description_contents = html_soup.findAll('p', {'class': 'description summary-field-show-more'})
+
+    output_array = []
+    for html_file in directory_files:
+        with open(directory + '/' + html_file, 'r') as content_file:
+            html = content_file.read()
+
+        html_soup = BeautifulSoup(html, 'html.parser')
+        description_contents = html_soup.findAll('p', {'class': 'description summary-field-show-more'})
+
+        words = []
+        for html_content in description_contents:
+            content = ' '.join([c for c in html_content.contents if not type(c) is bs4.element.Tag])
+            tokens = [e.lower() for e in map(string.strip, re.split('(\W+)', content)) if len(e) > 0 and not re.match('\W',e)]
+            for token in tokens:
+                if not token in stopwords:
+                    words.append(token)
+
+        output_array.append(words)
+
+    f = open(output_file, 'wb')
+    csv_writer = csv.writer(f, delimiter =' ')
+    csv_writer.writerows(output_array)
+
+if __name__ == '__main__':
+    parse(LINKEDIN_TRAINING_DIRECTORY, LINKEDIN_TRAINING_FILE)
