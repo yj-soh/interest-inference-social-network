@@ -1,3 +1,4 @@
+import codecs
 import HTMLParser
 import nltk
 from nltk.corpus import stopwords
@@ -37,6 +38,8 @@ ADVERB_TAGS = ['RB', 'RBR', 'RBS', 'WRB']
 NOUN_TAGS = ['NN', 'NNS', 'NNP', 'NNPS', 'PRP', 'WP']
 ADJECTIVE_TAGS = ['JJ', 'JJR', 'JJS']
 VERB_TAGS = ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+
+punctuation = unicode(string.punctuation)
 
 html_parser = HTMLParser.HTMLParser()
 pos_tagger = nltk.tag.perceptron.PerceptronTagger()
@@ -161,7 +164,7 @@ def _parse_text(tweet):
     
     # markup normalization
     tweet = html_parser.unescape(tweet)
-    tweet = tweet.encode('utf8')
+    tweet = unicode(tweet)
     
     # split into unigrams
     tagged_words = _get_unigrams(tweet)
@@ -220,7 +223,7 @@ def _parse_tweets(tweets_dir, f):
         # text
         tweet['text'] = json['text']
         tweet['unigrams'], tweet['tagged_unigrams'] = _parse_text(json['text'])
-        line = ' '.join(u for u in tweet['unigrams'] if u not in string.punctuation)
+        line = u' '.join(u for u in tweet['unigrams'] if u not in punctuation)
         f(line)
         
         '''
@@ -255,7 +258,7 @@ def parse_all_files(new_options=options):
         dirs = sorted(sorted(dirs), key=lambda s: len(s))
         dirs = ['U' + d for d in dirs]
         
-        f = open(type['out'], 'w')
+        f = codecs.getwriter('utf8')(open(type['out'], 'w'))
         for dir in dirs:
             tweets = []
             
@@ -263,9 +266,10 @@ def parse_all_files(new_options=options):
                 tweets.append(tweet)
             _parse_tweets(all_tweets_dir + dir, collect)
             
-            line = ' '.join(tweets)
+            line = u' '.join(tweets) # join all tweets from one user
+            line = u' '.join(line.splitlines()) # rejoin tweets if they contain newline(s)
             
-            f.write(line + '\n')
+            f.write(line + u'\n')
             
         #f = open(type['out'], 'w')
         #f.write('\n'.join(tweets))
