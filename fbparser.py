@@ -3,6 +3,8 @@ import os
 import re
 import string
 
+import textprocessor as parser
+
 FILES = {
     'training': {
         'in': 'data/train/Facebook/',
@@ -29,18 +31,17 @@ re_str_social = r'\|By|View \d+ more comments?|View \d+ more [replies|reply]|\d+
 re_str_static_terms = r'Automatically Translated  See Original|Comment|Edited|Like|Remove|Reply|See Translation|Share|Water Later|Write a comment... Press Enter to post.|\w+ emoticon'
 
 re_fb_terms = re.compile(re_str_date + '|' + re_str_actions + '|' + re_str_social + '|' + re_str_static_terms, re.UNICODE)
-re_numbers = re.compile(r'\d+')
-re_punctuation = '[%s]' % re.escape(string.punctuation)
+
 
 def _parse_text(text):
     # remove fb terms
     text = re.sub(re_fb_terms, '', text)
     
     # remove numbers
-    text = re.sub(re_numbers, '', text)
+    text = parser.remove_numbers(text)
     
     # remove punctuation
-    text = re.sub(re_punctuation, ' ', text)
+    text = parser.remove_punctuation(text)
     
     # force lowercase
     text = text.lower()
