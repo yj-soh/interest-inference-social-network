@@ -61,7 +61,7 @@ re_words = re.compile(re_str_emoticon + '|' + re_str_words_meta + '|' + re_str_w
                       re.VERBOSE | re.I | re.UNICODE)
 re_repeat_char = re.compile(r'(.)\1+')
 re_numbers = re.compile(r'\d+')
-re_punctuation = '[%s]' % re.escape(punctuation)
+re_punctuation = re.compile('[%s]' % punctuation)
 
 def get_unigrams(text_str):
     return re_words.findall(text_str)
@@ -112,8 +112,8 @@ def separate_emoji(text_str):
 def normalize_markup(text_str):
     return unicode(html_parser.unescape(text_str))
 
-def has_punctuation(text_str):
-    return re.match(re_punctuation, text_str)
+def is_punctuation(text_str):
+    return all(c in punctuation for c in text_str)
 
 def remove_punctuation(text_str):
     return re.sub(re_punctuation, ' ', text_str)
