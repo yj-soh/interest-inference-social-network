@@ -10,7 +10,7 @@ def compute_s_k(truth_labels, test_labels, k):
         sorted_indexes = np.argsort(-test_label)
         for i in range(0, k):
             index = sorted_indexes[i]
-            if truth_label[index] == test_label[index] and truth_label[index] == 1:
+            if test_label[index] > 0 and truth_label[index] == 1:
                 acc_sk = acc_sk + 1.0
                 break
 
@@ -25,9 +25,9 @@ def compute_p_k(truth_labels, test_labels, k):
         num_relevant = 0.0
         for i in range(0, k):
             index = sorted_indexes[i]
-            if test_label[index] == 1:
+            if test_label[index] > 0:
                 num_retrieved = num_retrieved + 1.0
-            if truth_label[index] == test_label[index] and truth_label[index] == 1:
+            if test_label[index] > 0 and truth_label[index] == 1:
                 num_relevant = num_relevant + 1.0
 
         if num_retrieved == 0:
@@ -38,6 +38,6 @@ def compute_p_k(truth_labels, test_labels, k):
 
 if __name__ == '__main__':
     truth_labels = np.array([[1,1,1,1,1,0], [1,0,1,0,1,0]])
-    test_labels = np.array([[0,1,1,1,0,0], [0,1,0,1,1,0]])
+    test_labels = np.array([[0,0.8,1,0.2,0,0], [0,1,0,1,0.2,0]])
     print compute_s_k(truth_labels, test_labels, 2)
     print compute_p_k(truth_labels, test_labels, 4)
