@@ -24,7 +24,7 @@ FILES = {
 }
 
 options = {
-    'stopwords': False,
+    'stopwords': True,
     'force_lowercase': True,
     'trim_repeat_char': True,
     'lemma': False,

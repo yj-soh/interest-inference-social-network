@@ -1,21 +1,26 @@
-from llda import LLDA
 import numpy as np
 import pickle
 import csv
 
-TRAINING_FILES = {'tweets': 'data/generated/training_tweets.txt', 'linkedin': 'data/generated/training_linkedin.txt'}
-TESTING_FILES = {'linkedin': 'data/generated/testing_linkedin.txt'}
-PHI_FILES = {'tweets': 'data/generated/tweets_words.txt_phi', 'linkedin': 'data/generated/linkedin_words.txt_phi'}
-INTEREST_WORDS_FILES = {'tweets': 'data/generated/tweets_interest_words.txt', 'linkedin': 'data/generated/linkedin_interest_words.txt'}
-TRAINING_FEATURE_FILES = {'tweets': 'data/generated/features/training_tweets_features.csv', 'linkedin': 'data/generated/features/training_linkedin_features.csv'}
-TESTING_FEATURE_FILES = {'linkedin': 'data/generated/features/testing_linkedin_features.csv'}
+TRAINING_FILES = {'fb': 'data/generated/training_fb.txt', 'tweets': 'data/generated/training_tweets.txt', 'linkedin': 'data/generated/training_linkedin.txt'}
+TESTING_FILES = {'fb': 'data/generated/testing_fb.txt', 'tweets':'data/generated/testing_tweets.txt', 'linkedin': 'data/generated/testing_linkedin.txt'}
+PHI_FILES = {'fb': 'data/generated/fb_words.txt_phi', 'tweets': 'data/generated/tweets_words.txt_phi', 'linkedin': 'data/generated/linkedin_words.txt_phi'}
+INTEREST_WORDS_FILES = {'fb': 'data/generated/fb_interest_words.txt', 'tweets': 'data/generated/tweets_interest_words.txt', 'linkedin': 'data/generated/linkedin_interest_words.txt'}
+TRAINING_FEATURE_FILES = {'fb': 'data/generated/features/training_fb_features.csv', 'tweets': 'data/generated/features/training_tweets_features.csv', 'linkedin': 'data/generated/features/training_linkedin_features.csv'}
+TESTING_FEATURE_FILES = {'fb': 'data/generated/features/testing_fb_features.csv', 'tweets': 'data/generated/features/testing_tweets_features.csv', 'linkedin': 'data/generated/features/testing_linkedin_features.csv'}
 
 class FeatureBuilder:
     def __init__(self):
         self.interest_words = {}
         self.interest_words['linkedin'] = self.load_llda_interest_words(PHI_FILES['linkedin'], INTEREST_WORDS_FILES['linkedin'])
+        self.interest_words['tweets'] = self.load_llda_interest_words(PHI_FILES['tweets'], INTEREST_WORDS_FILES['tweets'])
+        self.interest_words['fb'] = self.load_llda_interest_words(PHI_FILES['fb'], INTEREST_WORDS_FILES['fb'])
         self.create_feature_vectors(TRAINING_FILES['linkedin'], TRAINING_FEATURE_FILES['linkedin'], 'linkedin')
         self.create_feature_vectors(TESTING_FILES['linkedin'], TESTING_FEATURE_FILES['linkedin'], 'linkedin')
+        self.create_feature_vectors(TRAINING_FILES['tweets'], TRAINING_FEATURE_FILES['tweets'], 'tweets')
+        self.create_feature_vectors(TESTING_FILES['tweets'], TESTING_FEATURE_FILES['tweets'], 'tweets')
+        self.create_feature_vectors(TRAINING_FILES['fb'], TRAINING_FEATURE_FILES['fb'], 'fb')
+        self.create_feature_vectors(TESTING_FILES['fb'], TESTING_FEATURE_FILES['fb'], 'fb')
 
     def load_llda_interest_words(self, words_file, output_file):
         # read llda results
@@ -42,6 +47,8 @@ class FeatureBuilder:
             for word_phi in sorted_words_phi:
                 words_phi_dict[word_phi[0]] = float(word_phi[1])
             interest_words.append(words_phi_dict)
+
+        print interest_words
 
         pickle.dump(interest_words, open(output_file, 'wb'))
         return interest_words
