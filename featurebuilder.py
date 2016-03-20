@@ -15,6 +15,7 @@ class FeatureBuilder:
         self.interest_words['linkedin'] = self.load_llda_interest_words(PHI_FILES['linkedin'], INTEREST_WORDS_FILES['linkedin'])
         self.interest_words['tweets'] = self.load_llda_interest_words(PHI_FILES['tweets'], INTEREST_WORDS_FILES['tweets'])
         self.interest_words['fb'] = self.load_llda_interest_words(PHI_FILES['fb'], INTEREST_WORDS_FILES['fb'])
+        
         self.create_feature_vectors(TRAINING_FILES['linkedin'], TRAINING_FEATURE_FILES['linkedin'], 'linkedin')
         self.create_feature_vectors(TESTING_FILES['linkedin'], TESTING_FEATURE_FILES['linkedin'], 'linkedin')
         self.create_feature_vectors(TRAINING_FILES['tweets'], TRAINING_FEATURE_FILES['tweets'], 'tweets')
@@ -47,8 +48,6 @@ class FeatureBuilder:
             for word_phi in sorted_words_phi:
                 words_phi_dict[word_phi[0]] = float(word_phi[1])
             interest_words.append(words_phi_dict)
-
-        print interest_words
 
         pickle.dump(interest_words, open(output_file, 'wb'))
         return interest_words
