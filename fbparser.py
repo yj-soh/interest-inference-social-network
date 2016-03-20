@@ -37,17 +37,22 @@ def _parse_text(text):
     # remove fb terms
     text = re.sub(re_fb_terms, '', text)
     
-    # remove numbers
-    text = parser.remove_numbers(text)
+    # parse terms
+    unigrams = parser.get_unigrams(text)
     
-    # remove punctuation
-    text = parser.remove_punctuation(text)
+    # remove stopwords, numbers, punctuation
+    def should_remove(str):
+        return parser.is_stopword(str) or \
+        str.isdigit() or parser.is_punctuation(str)
+    
+    unigrams = (u for u in unigrams if not should_remove(u))
+    
+    unigrams = (parser.remove_hash(parser.remove_at(u)) for u in unigrams)
+    
+    text = parser.unigrams_to_str(unigrams)
     
     # force lowercase
     text = text.lower()
-    
-    # remove excessive whitespace
-    text = u' '.join(text.split())
     
     return text
 

@@ -124,8 +124,7 @@ def parse_all_files(new_options=options):
                 tweets.append(tweet)
             _parse_tweets(all_tweets_dir + dir, collect)
             
-            line = u' '.join(tweets) # join all tweets from one user
-            line = u' '.join(line.splitlines()) # rejoin tweets if they contain newline(s)
+            line = parser.unigrams_to_str(tweets)
             
             f.write(line + u'\n')
             

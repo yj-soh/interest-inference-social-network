@@ -91,6 +91,9 @@ def remove_at(at_str):
         return at_str[1:]
     return at_str
 
+def unigrams_to_str(text_ls):
+    return u' '.join(u' '.join(u' '.join(text_ls).splitlines()).split())
+
 def is_stopword(unigram_str):
     return unigram_str in stopwords
 
