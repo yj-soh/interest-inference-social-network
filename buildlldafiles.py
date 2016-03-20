@@ -3,8 +3,8 @@ import csv
 GROUND_TRUTH_FILE = 'data/train/GroundTruth/groundTruth.txt'
 TRAINING_LABELS_FILE = 'llda/labels.txt'
 
-TRAINING_INPUT_FILES = ['data/generated/training_tweets.txt', 'data/generated/training_linkedin.txt']
-TRAINING_OUTPUT_FILES = ['llda/tweets_words.txt', 'llda/linkedin_words.txt']
+TRAINING_INPUT_FILES = ['data/generated/training_fb.txt', 'data/generated/training_tweets.txt', 'data/generated/training_linkedin.txt']
+TRAINING_OUTPUT_FILES = ['llda/fb_words.txt', 'llda/tweets_words.txt', 'llda/linkedin_words.txt']
 
 # read labels
 interest_labels = []
