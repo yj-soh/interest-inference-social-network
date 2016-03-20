@@ -20,7 +20,8 @@ class Classifier:
     def train_classifier(self, social_media):
         features = np.loadtxt(TRAINING_FEATURE_FILES[social_media], delimiter=',')
         labels = np.loadtxt(TRAINING_LABELS_FILE, delimiter=',')
-        self.classifiers[social_media] = RandomForestClassifier(n_estimators=60)
+        # self.classifiers[social_media] = RandomForestClassifier(n_estimators=60)
+        self.classifiers[social_media] = KNeighborsClassifier(n_neighbors=40)
         self.classifiers[social_media].fit(features, labels)
 
     # saves overall results in results_file. Returns [recall, precision, F1]
