@@ -116,7 +116,7 @@ def normalize_markup(text_str):
     return unicode(html_parser.unescape(text_str))
 
 def is_punctuation(text_str):
-    return all(c in punctuation for c in text_str)
+    return all(c in punctuation or c is ' ' for c in text_str)
 
 def remove_punctuation(text_str):
     return re.sub(re_punctuation, ' ', text_str)
