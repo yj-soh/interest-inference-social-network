@@ -66,28 +66,26 @@ def _parse_fb(fb_file):
         text = _parse_text(text)
         return text
 
-def parse_all_files(new_options=options):
-    dirs = [FILES['training'], FILES['testing']]
-    
+def parse(type, new_options=options):
     options = new_options
     
-    for type in dirs:
-        fb_dir = type['in']
+    fb_dir = type['in']
+
+    # toss everything into memory; should be fine due to data's size
     
-        # toss everything into memory; should be fine due to data's size
+    files = os.listdir(fb_dir)
+    files = [fn[1:] for fn in files]
+    files = sorted(sorted(files), key=lambda s: len(s))
+    files = ['U' + fn for fn in files]
+    
+    f = codecs.getwriter('utf8')(open(type['out'], 'w'))
+    for file in files:
+        line = _parse_fb(fb_dir + file)
+        line = u' '.join(line.splitlines()) # rejoin item if it contains newline(s)
         
-        files = os.listdir(fb_dir)
-        files = [fn[1:] for fn in files]
-        files = sorted(sorted(files), key=lambda s: len(s))
-        files = ['U' + fn for fn in files]
-        
-        f = codecs.getwriter('utf8')(open(type['out'], 'w'))
-        for file in files:
-            line = _parse_fb(fb_dir + file)
-            line = u' '.join(line.splitlines()) # rejoin item if it contains newline(s)
-            
-            f.write(line + u'\n')
-        f.close()
+        f.write(line + u'\n')
+    f.close()
 
 if __name__ == '__main__':
-        parse_all_files()
+    parse(FILES['training'])
+    parse(FILES['testing'])

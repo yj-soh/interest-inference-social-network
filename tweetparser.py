@@ -112,37 +112,33 @@ def _parse_tweets(tweets_dir, f):
         line = u' '.join(u for u in tweet['unigrams'] if not parser.is_punctuation(u))
         f(line)
 
-def parse_all_files(new_options=options):
-    files = [FILES['training'], FILES['testing']]
-    
+def parse(type, new_options=options):
     options = new_options
     
-    for type in files:
-        all_tweets_dir = type['in']
+    all_tweets_dir = type['in']
+
+    # toss everything into memory; should be fine due to data's size
+    tweets = []
     
-        # toss everything into memory; should be fine due to data's size
+    dirs = os.listdir(all_tweets_dir)
+    dirs = [d[1:] for d in dirs]
+    dirs = sorted(sorted(dirs), key=lambda s: len(s))
+    dirs = ['U' + d for d in dirs]
+    
+    f = codecs.getwriter('utf8')(open(type['out'], 'w'))
+    for dir in dirs:
         tweets = []
         
-        dirs = os.listdir(all_tweets_dir)
-        dirs = [d[1:] for d in dirs]
-        dirs = sorted(sorted(dirs), key=lambda s: len(s))
-        dirs = ['U' + d for d in dirs]
+        def collect(tweet):
+            tweets.append(tweet)
+        _parse_tweets(all_tweets_dir + dir, collect)
         
-        f = codecs.getwriter('utf8')(open(type['out'], 'w'))
-        for dir in dirs:
-            tweets = []
-            
-            def collect(tweet):
-                tweets.append(tweet)
-            _parse_tweets(all_tweets_dir + dir, collect)
-            
-            line = parser.unigrams_to_str(tweets)
-            
-            f.write(line + u'\n')
-            
-        #f = open(type['out'], 'w')
-        #f.write('\n'.join(tweets))
-        f.close()
+        line = parser.unigrams_to_str(tweets)
+        
+        f.write(line + u'\n')
+        
+    f.close()
 
 if __name__ == '__main__':
-        parse_all_files()
+    parse(FILES['training'])
+    parse(FILES['testing'])
