@@ -68,9 +68,8 @@ class Classifier:
         precision = metrics.precision_score(truth_labels, result_labels, average='macro')
         recall = metrics.recall_score(truth_labels, result_labels, average='macro')
         f1 = metrics.f1_score(truth_labels, result_labels, average='macro')
-        p_10 =  kmetrics.compute_p_k(truth_labels, result_labels, 10)
 
-        return {'P@10': p_10, 'recall': recall, 'precision': precision, 'F1': f1}
+        return {'recall': recall, 'precision': precision, 'F1': f1}
 
 if __name__ == '__main__':
     classifier = Classifier()
