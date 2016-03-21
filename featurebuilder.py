@@ -8,6 +8,7 @@ PHI_FILES = {'fb': 'data/generated/fb_words.txt_phi', 'tweets': 'data/generated/
 INTEREST_WORDS_FILES = {'fb': 'data/generated/fb_interest_words.txt', 'tweets': 'data/generated/tweets_interest_words.txt', 'linkedin': 'data/generated/linkedin_interest_words.txt'}
 TRAINING_FEATURE_FILES = {'fb': 'data/generated/features/training_fb_features.csv', 'tweets': 'data/generated/features/training_tweets_features.csv', 'linkedin': 'data/generated/features/training_linkedin_features.csv'}
 TESTING_FEATURE_FILES = {'fb': 'data/generated/features/testing_fb_features.csv', 'tweets': 'data/generated/features/testing_tweets_features.csv', 'linkedin': 'data/generated/features/testing_linkedin_features.csv'}
+MANUAL_TOPIC_MODEL_FILE = 'resources/manual_topic_model.csv'
 
 class FeatureBuilder:
     def __init__(self):
@@ -37,7 +38,16 @@ class FeatureBuilder:
                 phi = row[2]
                 if interest.isdigit():
                     interest_words_phi[int(interest)].append([word, phi])
-        
+
+        # manual topic model
+        with open(MANUAL_TOPIC_MODEL_FILE, 'rb') as f:
+            reader = csv.reader(f, delimiter=',')
+            for row in reader:
+                interest = row[0]
+                word = row[2]
+                phi = row[3]
+                interest_words_phi[int(interest)].append([word, phi])
+
         # extract top 50 words for each interest
         interest_words = []
         for words_phi in interest_words_phi:
@@ -50,6 +60,7 @@ class FeatureBuilder:
             interest_words.append(words_phi_dict)
 
         pickle.dump(interest_words, open(output_file, 'wb'))
+
         return interest_words
         
     def create_feature_vectors(self, words_file, features_file='', social_media=''):

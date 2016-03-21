@@ -1,7 +1,10 @@
 import numpy as np
 import pickle
 import kmetrics
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.svm import SVC
 from sklearn import metrics
+
 # classifiers
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -22,8 +25,10 @@ class Classifier:
     def train_classifier(self, social_media):
         features = np.loadtxt(TRAINING_FEATURE_FILES[social_media], delimiter=',')
         labels = np.loadtxt(TRAINING_LABELS_FILE, delimiter=',')
-        # self.classifiers[social_media] = RandomForestClassifier(n_estimators=60)
-        self.classifiers[social_media] = KNeighborsClassifier(n_neighbors=25)
+
+        self.classifiers[social_media] = OneVsRestClassifier(SVC(kernel='linear', C=0.4))
+        # # self.classifiers[social_media] = RandomForestClassifier(n_estimators=60)
+        # self.classifiers[social_media] = KNeighborsClassifier(n_neighbors=25)
         self.classifiers[social_media].fit(features, labels)
 
     # early fusion concatenate all features
@@ -35,7 +40,7 @@ class Classifier:
         features = np.concatenate((fb_features, tweets_features, linkedin_features), axis=1)
         labels = np.loadtxt(TRAINING_LABELS_FILE, delimiter=',')
 
-        self.classifiers['all'] = KNeighborsClassifier(n_neighbors=25)
+        self.classifiers['all'] = OneVsRestClassifier(SVC(kernel='linear', C=0.4))
         self.classifiers['all'].fit(features, labels)
 
     def predict_late_fusion_testing_data(self, fb_result_labels, tweets_result_labels, linkedin_result_labels, truth_file, results_file):
