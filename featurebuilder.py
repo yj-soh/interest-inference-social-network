@@ -4,10 +4,11 @@ import csv
 
 TRAINING_FILES = {'fb': 'data/generated/training_fb.txt', 'tweets': 'data/generated/training_tweets.txt', 'linkedin': 'data/generated/training_linkedin.txt'}
 TESTING_FILES = {'fb': 'data/generated/testing_fb.txt', 'tweets':'data/generated/testing_tweets.txt', 'linkedin': 'data/generated/testing_linkedin.txt'}
-PHI_FILES = {'fb': 'data/generated/fb_words.txt_phi', 'tweets': 'data/generated/tweets_words.txt_phi', 'linkedin': 'data/generated/linkedin_words.txt_phi'}
+PHI_FILES = {'fb': 'llda/fb_words.txt_phi', 'tweets': 'llda/tweets_words.txt_phi', 'linkedin': 'llda/linkedin_words.txt_phi'}
 INTEREST_WORDS_FILES = {'fb': 'data/generated/fb_interest_words.txt', 'tweets': 'data/generated/tweets_interest_words.txt', 'linkedin': 'data/generated/linkedin_interest_words.txt'}
 TRAINING_FEATURE_FILES = {'fb': 'data/generated/features/training_fb_features.csv', 'tweets': 'data/generated/features/training_tweets_features.csv', 'linkedin': 'data/generated/features/training_linkedin_features.csv'}
 TESTING_FEATURE_FILES = {'fb': 'data/generated/features/testing_fb_features.csv', 'tweets': 'data/generated/features/testing_tweets_features.csv', 'linkedin': 'data/generated/features/testing_linkedin_features.csv'}
+MANUAL_TOPIC_MODEL_FILE = 'resources/manual_topic_model.csv'
 
 class FeatureBuilder:
     def __init__(self):
@@ -18,10 +19,10 @@ class FeatureBuilder:
         
         self.create_feature_vectors(TRAINING_FILES['linkedin'], TRAINING_FEATURE_FILES['linkedin'], 'linkedin')
         self.create_feature_vectors(TESTING_FILES['linkedin'], TESTING_FEATURE_FILES['linkedin'], 'linkedin')
-        self.create_feature_vectors(TRAINING_FILES['tweets'], TRAINING_FEATURE_FILES['tweets'], 'tweets')
-        self.create_feature_vectors(TESTING_FILES['tweets'], TESTING_FEATURE_FILES['tweets'], 'tweets')
-        self.create_feature_vectors(TRAINING_FILES['fb'], TRAINING_FEATURE_FILES['fb'], 'fb')
-        self.create_feature_vectors(TESTING_FILES['fb'], TESTING_FEATURE_FILES['fb'], 'fb')
+        self.create_feature_vectors(TRAINING_FILES['tweets'], TRAINING_FEATURE_FILES['tweets'], 'linkedin')
+        self.create_feature_vectors(TESTING_FILES['tweets'], TESTING_FEATURE_FILES['tweets'], 'linkedin')
+        self.create_feature_vectors(TRAINING_FILES['fb'], TRAINING_FEATURE_FILES['fb'], 'linkedin')
+        self.create_feature_vectors(TESTING_FILES['fb'], TESTING_FEATURE_FILES['fb'], 'linkedin')
 
     def load_llda_interest_words(self, words_file, output_file):
         # read llda results
@@ -37,7 +38,16 @@ class FeatureBuilder:
                 phi = row[2]
                 if interest.isdigit():
                     interest_words_phi[int(interest)].append([word, phi])
-        
+
+        # manual topic model
+        with open(MANUAL_TOPIC_MODEL_FILE, 'rb') as f:
+            reader = csv.reader(f, delimiter=',')
+            for row in reader:
+                interest = row[0]
+                word = row[2]
+                phi = row[3]
+                interest_words_phi[int(interest)].append([word, phi])
+
         # extract top 50 words for each interest
         interest_words = []
         for words_phi in interest_words_phi:
@@ -50,6 +60,7 @@ class FeatureBuilder:
             interest_words.append(words_phi_dict)
 
         pickle.dump(interest_words, open(output_file, 'wb'))
+
         return interest_words
         
     def create_feature_vectors(self, words_file, features_file='', social_media=''):

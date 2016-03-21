@@ -1,0 +1,33 @@
+0,marketing,marketing,0.1
+1,reading,book,0.5
+2,internet marketing,internet_marketing,0.1
+3,investing,investor,0.2
+4,online marketing,online_marketing,0.1
+5,advertising,advertising,0.05
+6,social media,social_media,0.1
+7,social networking,social_networking,0.1
+11,photography,photography,0.5
+11,photography,aperture,0.01
+11,photography,camera,0.1
+12,meditation,meditation,0.5
+12,meditation,yoga,0.5
+12,meditation,yogis,0.01
+12,meditation,calmness,0.01
+16,philosophy,philosophy,0.5
+16,philosophy,metaphysics,0.1
+10,skiing,skii,0.5
+10,skiing,skiing,0.5
+13,web development,ruby,0.1
+13,web development,javascript,0.1
+13,web development,web_development,0.1
+15,web design,dreamweaver,0.1
+15,web design,web_design,0.1
+17,business development,business_development,0.1
+18,sailing,sail,0.5
+18,sailing,sailing,0.5
+18,sailing,sailboat,0.1
+18,sailing,sailboats,0.1
+19,software development,programming,0.01
+19,software development,software,0.01
+19,software development,git,0.01
+19,software development,software_development,0.1

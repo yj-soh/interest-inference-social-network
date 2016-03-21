@@ -1,7 +1,10 @@
 import numpy as np
 import pickle
 import kmetrics
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.svm import SVC
 from sklearn import metrics
+
 # classifiers
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -22,8 +25,10 @@ class Classifier:
     def train_classifier(self, social_media):
         features = np.loadtxt(TRAINING_FEATURE_FILES[social_media], delimiter=',')
         labels = np.loadtxt(TRAINING_LABELS_FILE, delimiter=',')
-        # self.classifiers[social_media] = RandomForestClassifier(n_estimators=60)
-        self.classifiers[social_media] = KNeighborsClassifier(n_neighbors=25)
+
+        self.classifiers[social_media] = OneVsRestClassifier(SVC(kernel='linear', C=0.4))
+        # # self.classifiers[social_media] = RandomForestClassifier(n_estimators=60)
+        # self.classifiers[social_media] = KNeighborsClassifier(n_neighbors=25)
         self.classifiers[social_media].fit(features, labels)
 
     # early fusion concatenate all features
@@ -35,7 +40,7 @@ class Classifier:
         features = np.concatenate((fb_features, tweets_features, linkedin_features), axis=1)
         labels = np.loadtxt(TRAINING_LABELS_FILE, delimiter=',')
 
-        self.classifiers['all'] = KNeighborsClassifier(n_neighbors=25)
+        self.classifiers['all'] = OneVsRestClassifier(SVC(kernel='linear', C=0.4))
         self.classifiers['all'].fit(features, labels)
 
     def predict_late_fusion_testing_data(self, fb_result_labels, tweets_result_labels, linkedin_result_labels, truth_file, results_file):
@@ -60,7 +65,12 @@ class Classifier:
 
         truth_labels = np.loadtxt(truth_file, delimiter=',')
 
-        return kmetrics.compute_p_k(truth_labels, result_labels, 10)
+        precision = metrics.precision_score(truth_labels, result_labels, average='macro')
+        recall = metrics.recall_score(truth_labels, result_labels, average='macro')
+        f1 = metrics.f1_score(truth_labels, result_labels, average='macro')
+        p_10 =  kmetrics.compute_p_k(truth_labels, result_labels, 10)
+
+        return {'P@10': p_10, 'recall': recall, 'precision': precision, 'F1': f1}
 
 if __name__ == '__main__':
     classifier = Classifier()
@@ -79,4 +89,4 @@ if __name__ == '__main__':
     fb_result_labels = np.loadtxt('results_fb.txt', delimiter=',')
     linkedin_result_labels = np.loadtxt('results_l.txt', delimiter=',')
 
-    print classifier.predict_late_fusion_testing_data(fb_result_labels, tweets_result_labels, linkedin_result_labels, TESTING_LABELS_FILE, 'results.txt')
+    # print classifier.predict_late_fusion_testing_data(fb_result_labels, tweets_result_labels, linkedin_result_labels, TESTING_LABELS_FILE, 'results.txt')
