@@ -22,7 +22,10 @@ options = {
     'trim_repeat_char': True,
     'lemma': False,
     'replace_slang': False,
-    'no_hash_hashtags': True
+    'no_hash_hashtags': True,
+    'no_at': True,
+    'no_numbers': True,
+    'no_one_char': True
 }
 
 def _get_unigrams(text):
@@ -38,7 +41,7 @@ def _get_unigrams(text):
 def _process_word(word, tag):
     # if is emoticon
     if parser.is_emoticon(word):
-        return word
+        return ''
     
     ### lower-case operations below ###
     if options['force_lowercase']:
@@ -46,6 +49,15 @@ def _process_word(word, tag):
     
     if options['no_hash_hashtags']:
         word = parser.remove_hash(word)
+    
+    if options['no_at']:
+        word = parser.remove_at(word)
+    
+    if options['no_numbers'] and word.isdigit():
+        return ''
+    
+    if options['no_one_char'] and len(word) is 1:
+        return ''
     
     # if is stopword
     if options['stopwords'] and parser.is_stopword(word):

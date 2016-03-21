@@ -43,11 +43,15 @@ def _parse_text(text):
     # remove stopwords, numbers, punctuation
     def should_remove(str):
         return parser.is_stopword(str) or \
-        str.isdigit() or parser.is_punctuation(str)
+        str.isdigit() or parser.is_punctuation(str) or \
+        len(str) is 1 or parser.is_emoticon(str)
     
     unigrams = (u for u in unigrams if not should_remove(u))
     
-    unigrams = (parser.remove_hash(parser.remove_at(u)) for u in unigrams)
+    unigrams = (word for word, emoji in map(parser.separate_emoji, unigrams))
+    unigrams = map(parser.remove_at, unigrams)
+    unigrams = map(parser.remove_hash, unigrams)
+    unigrams = map(parser.trim_repeat_char, unigrams)
     
     text = parser.unigrams_to_str(unigrams)
     
