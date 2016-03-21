@@ -65,7 +65,12 @@ class Classifier:
 
         truth_labels = np.loadtxt(truth_file, delimiter=',')
 
-        return kmetrics.compute_p_k(truth_labels, result_labels, 10)
+        precision = metrics.precision_score(truth_labels, result_labels, average='macro')
+        recall = metrics.recall_score(truth_labels, result_labels, average='macro')
+        f1 = metrics.f1_score(truth_labels, result_labels, average='macro')
+        p_10 =  kmetrics.compute_p_k(truth_labels, result_labels, 10)
+
+        return {'P@10': p_10, 'recall': recall, 'precision': precision, 'F1': f1}
 
 if __name__ == '__main__':
     classifier = Classifier()
@@ -84,4 +89,4 @@ if __name__ == '__main__':
     fb_result_labels = np.loadtxt('results_fb.txt', delimiter=',')
     linkedin_result_labels = np.loadtxt('results_l.txt', delimiter=',')
 
-    print classifier.predict_late_fusion_testing_data(fb_result_labels, tweets_result_labels, linkedin_result_labels, TESTING_LABELS_FILE, 'results.txt')
+    # print classifier.predict_late_fusion_testing_data(fb_result_labels, tweets_result_labels, linkedin_result_labels, TESTING_LABELS_FILE, 'results.txt')
