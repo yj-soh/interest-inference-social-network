@@ -35,6 +35,7 @@ def parse_html(html):
             tokens = [e.lower() for e in map(string.strip, re.split('(\W+)', content)) if len(e) > 0 and not re.match('\W',e)]
             for token in tokens:
                 if not token in stopwords:
+
                     words.append(token)
         return words
 
@@ -44,6 +45,14 @@ def parse_html(html):
     words.extend(parse_content(html_soup.findAll('p', {'class': 'title'})))
     words.extend(parse_content(html_soup.findAll('p', {'class': 'description'})))
     words.extend(parse_content(html_soup.findAll('a', {'class': 'endorse-item-name-text'})))
+
+    # make bigrams
+    bigrams = []
+    for i, word in enumerate(words):
+        if i - 1 >= 0:
+            bigrams.append(words[i - 1] + '_' + words[i])
+
+    words.extend(bigrams)
 
     return words
 
