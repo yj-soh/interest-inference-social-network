@@ -88,4 +88,4 @@ if __name__ == '__main__':
     fb_result_labels = np.loadtxt('results_fb.txt', delimiter=',')
     linkedin_result_labels = np.loadtxt('results_l.txt', delimiter=',')
 
-    # print classifier.predict_late_fusion_testing_data(fb_result_labels, tweets_result_labels, linkedin_result_labels, TESTING_LABELS_FILE, 'results.txt')
+    print classifier.predict_late_fusion_testing_data(fb_result_labels, tweets_result_labels, linkedin_result_labels, TESTING_LABELS_FILE, 'results.txt')

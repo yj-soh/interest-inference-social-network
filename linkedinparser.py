@@ -20,8 +20,8 @@ def alphanum_key(s):
     """
     return [tryint(c) for c in re.split('([0-9]+)', s)]
 
-LINKEDIN_TRAINING_DIRECTORY = 'data/train/LinkedIn'
-LINKEDIN_TESTING_DIRECTORY = 'data/test/LinkedIn'
+LINKEDIN_TRAINING_DIRECTORY = 'data/train/LinkedIn/'
+LINKEDIN_TESTING_DIRECTORY = 'data/test/LinkedIn/'
 LINKEDIN_TRAINING_FILE = 'data/generated/training_linkedin.txt'
 LINKEDIN_TESTING_FILE = 'data/generated/testing_linkedin.txt'
 
@@ -56,13 +56,15 @@ def parse_html(html):
 
     return words
 
-def parse(directory, output_file):
+def parse(files):
+    directory = files['in']
+    output_file = files['out']
     directory_files = os.listdir(directory)
     directory_files.sort(key=alphanum_key)
 
     output_array = []
     for html_file in directory_files:
-        with open(directory + '/' + html_file, 'r') as content_file:
+        with open(directory + html_file, 'r') as content_file:
             html = content_file.read()
 
         output_array.append(parse_html(html))
@@ -72,5 +74,11 @@ def parse(directory, output_file):
     csv_writer.writerows(output_array)
 
 if __name__ == '__main__':
-    parse(LINKEDIN_TRAINING_DIRECTORY, LINKEDIN_TRAINING_FILE)
-    parse(LINKEDIN_TESTING_DIRECTORY, LINKEDIN_TESTING_FILE)
+    parse({
+        'in': LINKEDIN_TRAINING_DIRECTORY,
+        'out': LINKEDIN_TRAINING_FILE
+    })
+    parse({
+        'in': LINKEDIN_TESTING_DIRECTORY,
+        'out': LINKEDIN_TESTING_FILE
+    })
