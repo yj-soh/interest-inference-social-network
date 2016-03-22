@@ -1,11 +1,14 @@
 import bs4
 from bs4 import BeautifulSoup
+import codecs
 import nltk
 from nltk.corpus import stopwords
 import os
 import re
 import string
 import csv
+
+import textprocessor as parser
 
 # utility functions for sorting files in directory
 def tryint(s):
@@ -27,6 +30,74 @@ LINKEDIN_TESTING_FILE = 'data/generated/testing_linkedin.txt'
 
 stopwords = map(lambda s:str(s), stopwords.words('english'))
 
+def extract_data(html_soup):
+    words = {}
+    
+    words['name'] = html_soup.find('span', class_='full-name')
+    
+    def resolve(ele, f=lambda x: x):
+        try:
+            return map(lambda x: resolve(x, f), ele) if isinstance(ele, list) else f(ele)
+        except:
+            return [] if isinstance(f, list) else None
+    
+    def opt(f):
+        try:
+            return f()
+        except:
+            return []
+    
+    text = []
+    
+    text.extend([
+        html_soup.find('p', class_='title'),
+        html_soup.find('span', class_='locality'),
+        html_soup.find('dd', class_='industry')
+    ])
+    
+    for e in html_soup.find_all('div', class_='education'):
+        text.extend([
+            e.find('h4', class_='summary'),
+            e.find('span', class_='degree'),
+            resolve(e.find('p', class_='activities'), lambda m: m.a),
+            e.find('p', class_='notes')
+        ])
+        text.extend(opt(lambda: e.find('span', class_='major').find_all('a')))
+    
+    text.extend(resolve(opt(lambda: html_soup.find_all('p', class_='following-name')),
+                        lambda m: m.a.strong))
+    
+    text.extend(resolve(opt(lambda: html_soup.find('ul', class_='interests-listing').find_all('li')),
+                        lambda m: m.a))
+    
+    for e in opt(lambda: html_soup.find_all('div', id=re.compile('experience-.*?-view'))):
+        text.extend([
+            e.header.h4,
+            e.header.find(lambda t: t.name == 'h5' and not t.has_attr('class')),
+            e.p
+        ])
+    
+    text.extend(resolve(opt(lambda: html_soup.find_all('span', class_='skill-pill')),
+                        lambda m: m.find_all('span')[1]))
+    
+    text.append(resolve(html_soup.find('div', class_='summary'), lambda m: m.p))
+    
+    text.extend(opt(lambda: html_soup.find('div', id='volunteering-opportunities').find_all('li')))
+    
+    for e in opt(lambda: html_soup.find_all('div', class_='experience')):
+        text.extend([
+            e.hgroup.h4,
+            e.hgroup.h5,
+            e.p
+        ])
+    
+    text = filter(lambda x: x is not None, text)
+    text = map(lambda x: x.get_text(), text)
+    text = filter(lambda x: x is not None, text)
+    text = parser.get_unigrams(parser.unigrams_to_str(text).lower())
+    
+    return text
+
 def parse_html(html):
     def parse_content(soup_content):
         words = []
@@ -41,11 +112,8 @@ def parse_html(html):
 
     html_soup = BeautifulSoup(html, 'html.parser')
 
-    words = []
-    words.extend(parse_content(html_soup.findAll('p', {'class': 'title'})))
-    words.extend(parse_content(html_soup.findAll('p', {'class': 'description'})))
-    words.extend(parse_content(html_soup.findAll('a', {'class': 'endorse-item-name-text'})))
-
+    words = extract_data(html_soup)
+    
     # make bigrams
     bigrams = []
     for i, word in enumerate(words):
@@ -65,11 +133,12 @@ def parse(directory, output_file):
         with open(directory + '/' + html_file, 'r') as content_file:
             html = content_file.read()
 
-        output_array.append(parse_html(html))
+        output_array.append(u' '.join(parse_html(html)))
 
-    f = open(output_file, 'wb')
-    csv_writer = csv.writer(f, delimiter =' ')
-    csv_writer.writerows(output_array)
+    f = codecs.getwriter('utf8')(open(output_file, 'w'))
+    for line in output_array:
+        f.write(line + u'\n')
+    f.close()
 
 if __name__ == '__main__':
     parse(LINKEDIN_TRAINING_DIRECTORY, LINKEDIN_TRAINING_FILE)
