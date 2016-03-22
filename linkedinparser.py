@@ -32,29 +32,29 @@ stopwords = map(lambda s:str(s), stopwords.words('english'))
 
 def extract_data(html_soup):
     words = {}
-    
+
     words['name'] = html_soup.find('span', class_='full-name')
-    
+
     def resolve(ele, f=lambda x: x):
         try:
             return map(lambda x: resolve(x, f), ele) if isinstance(ele, list) else f(ele)
         except:
             return [] if isinstance(f, list) else None
-    
+
     def opt(f):
         try:
             return f()
         except:
             return []
-    
+
     text = []
-    
+
     text.extend([
         html_soup.find('p', class_='title'),
         html_soup.find('span', class_='locality'),
         html_soup.find('dd', class_='industry')
     ])
-    
+
     for e in html_soup.find_all('div', class_='education'):
         text.extend([
             e.find('h4', class_='summary'),
@@ -63,39 +63,51 @@ def extract_data(html_soup):
             e.find('p', class_='notes')
         ])
         text.extend(opt(lambda: e.find('span', class_='major').find_all('a')))
-    
+
     text.extend(resolve(opt(lambda: html_soup.find_all('p', class_='following-name')),
                         lambda m: m.a.strong))
-    
+
     text.extend(resolve(opt(lambda: html_soup.find('ul', class_='interests-listing').find_all('li')),
                         lambda m: m.a))
-    
+
     for e in opt(lambda: html_soup.find_all('div', id=re.compile('experience-.*?-view'))):
         text.extend([
             e.header.h4,
             e.header.find(lambda t: t.name == 'h5' and not t.has_attr('class')),
             e.p
         ])
-    
+
     text.extend(resolve(opt(lambda: html_soup.find_all('span', class_='skill-pill')),
                         lambda m: m.find_all('span')[1]))
-    
+
     text.append(resolve(html_soup.find('div', class_='summary'), lambda m: m.p))
-    
+
     text.extend(opt(lambda: html_soup.find('div', id='volunteering-opportunities').find_all('li')))
-    
+
     for e in opt(lambda: html_soup.find_all('div', class_='experience')):
         text.extend([
             e.hgroup.h4,
             e.hgroup.h5,
             e.p
         ])
-    
+
     text = filter(lambda x: x is not None, text)
     text = map(lambda x: x.get_text(), text)
     text = filter(lambda x: x is not None, text)
     text = parser.get_unigrams(parser.unigrams_to_str(text).lower())
-    
+
+    def should_remove(str):
+        return parser.is_stopword(str) or \
+        str.isdigit() or parser.is_punctuation(str) or \
+        len(str) is 1 or parser.is_emoticon(str)
+
+    text = (u for u in text if not should_remove(u))
+
+    text = (word for word, emoji in map(parser.separate_emoji, text))
+    text = map(parser.remove_at, text)
+    text = map(parser.remove_hash, text)
+    text = map(parser.trim_repeat_char, text)
+
     return text
 
 def parse_html(html):
@@ -113,7 +125,7 @@ def parse_html(html):
     html_soup = BeautifulSoup(html, 'html.parser')
 
     words = extract_data(html_soup)
-    
+
     # make bigrams
     bigrams = []
     for i, word in enumerate(words):
