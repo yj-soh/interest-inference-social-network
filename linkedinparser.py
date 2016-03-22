@@ -96,6 +96,18 @@ def extract_data(html_soup):
     text = filter(lambda x: x is not None, text)
     text = parser.get_unigrams(parser.unigrams_to_str(text).lower())
     
+    def should_remove(str):
+        return parser.is_stopword(str) or \
+        str.isdigit() or parser.is_punctuation(str) or \
+        len(str) is 1 or parser.is_emoticon(str)
+    
+    text = (u for u in text if not should_remove(u))
+    
+    text = (word for word, emoji in map(parser.separate_emoji, text))
+    text = map(parser.remove_at, text)
+    text = map(parser.remove_hash, text)
+    text = map(parser.trim_repeat_char, text)
+    
     return text
 
 def parse_html(html):
