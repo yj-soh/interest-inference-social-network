@@ -9,12 +9,12 @@ INTEREST_WORDS_FILES = {'fb': 'data/generated/fb_interest_words.txt', 'tweets': 
 TRAINING_FEATURE_FILES = {'fb': 'data/generated/features/training_fb_features.csv', 'tweets': 'data/generated/features/training_tweets_features.csv', 'linkedin': 'data/generated/features/training_linkedin_features.csv'}
 TESTING_FEATURE_FILES = {'fb': 'data/generated/features/testing_fb_features.csv', 'tweets': 'data/generated/features/testing_tweets_features.csv', 'linkedin': 'data/generated/features/testing_linkedin_features.csv'}
 MANUAL_TOPIC_MODEL_FILE = 'resources/manual_topic_model.csv'
+WORD2VEC_TOPIC_MODEL_FILE = 'resources/word2vec.txt'
 
 class FeatureBuilder:
     def __init__(self):
         # only use linkedin topic model
         self.interest_words = self.load_llda_interest_words(PHI_FILES['linkedin'], INTEREST_WORDS_FILES['linkedin'])
-
         self.unigram_feature_dict = {}
         self.build_unigram_feature_dict(TRAINING_FILES['linkedin'], 'linkedin')
         self.build_unigram_feature_dict(TRAINING_FILES['tweets'], 'tweets')
@@ -45,7 +45,8 @@ class FeatureBuilder:
                 interest_words_phi[int(interest)].append([word, phi])
 
         # extract top 50 words for each interest
-        interest_words = []
+        interest_words = {'lda': [], 'word2vec': []}
+
         for words_phi in interest_words_phi:
             sorted_words_phi =  sorted(words_phi, key=lambda x: x[1])
             sorted_words_phi.reverse()
@@ -53,9 +54,31 @@ class FeatureBuilder:
             words_phi_dict = {}
             for word_phi in sorted_words_phi:
                 words_phi_dict[word_phi[0]] = float(word_phi[1])
-            interest_words.append(words_phi_dict)
+            interest_words['lda'].append(words_phi_dict)
 
-        pickle.dump(interest_words, open(output_file, 'wb'))
+        # read word2vec results
+        interest_words_phi = []
+        for i in range(0, 20):
+            interest_words_phi.append([])
+
+        with open(words_file, 'rb') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for row in reader:
+                interest = row[0]
+                word = row[1]
+                phi = row[2]
+                if interest.isdigit():
+                    interest_words_phi[int(interest)].append([word, phi])
+
+        # extract top 50 words for each interest
+        for words_phi in interest_words_phi:
+            sorted_words_phi =  sorted(words_phi, key=lambda x: x[1])
+            sorted_words_phi.reverse()
+            sorted_words_phi = sorted_words_phi[:50]
+            words_phi_dict = {}
+            for word_phi in sorted_words_phi:
+                words_phi_dict[word_phi[0]] = float(word_phi[1])
+            interest_words['word2vec'].append(words_phi_dict)
 
         return interest_words
 
@@ -139,14 +162,19 @@ class FeatureBuilder:
 
     def create_interest_feature_vector(self, words):
         lda_features = [0] * 20
+        word2vec_features = [0] * 20
 
-        for interest, words_phi_dict in enumerate(self.interest_words):
+        for interest, words_phi_dict in enumerate(self.interest_words['lda']):
             for word in words:
                 if (word in words_phi_dict):
                     lda_features[interest] = lda_features[interest] + words_phi_dict[word]
 
-        return lda_features
-
+        for interest, words_phi_dict in enumerate(self.interest_words['word2vec']):
+            for word in words:
+                if (word in words_phi_dict):
+                    word2vec_features[interest] = word2vec_features[interest] + words_phi_dict[word]
+                    
+        return np.concatenate((np.array(lda_features), np.array(word2vec_features)), axis=0)
 
 if __name__ == '__main__':
     fb = FeatureBuilder()
