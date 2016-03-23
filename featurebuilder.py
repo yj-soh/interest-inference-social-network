@@ -173,8 +173,9 @@ class FeatureBuilder:
             for word in words:
                 if (word in words_phi_dict):
                     word2vec_features[interest] = word2vec_features[interest] + words_phi_dict[word]
-                    
-        return np.concatenate((np.array(lda_features), np.array(word2vec_features)), axis=0)
+
+        return lda_features
+        # return np.concatenate((np.array(lda_features), np.array(word2vec_features)), axis=0)
 
 if __name__ == '__main__':
     fb = FeatureBuilder()

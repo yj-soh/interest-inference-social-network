@@ -64,18 +64,18 @@ class InterestAnalyzer:
         linkedin_testing_features = np.loadtxt(TESTING_FEATURE_FILES['linkedin'], delimiter=',')
         tweets_testing_features = np.loadtxt(TESTING_FEATURE_FILES['tweets'], delimiter=',')
         fb_testing_features = np.loadtxt(TESTING_FEATURE_FILES['fb'], delimiter=',')
-        all_testing_features = np.concatenate((fb_testing_features, tweets_testing_features, linkedin_testing_features), axis=1)
-        
+
         print 'Predicting labels...'
         print 'LinkedIn classifier:'
         print self.classifier.predict_testing_data('linkedin', linkedin_testing_features, TESTING_LABELS_FILE, 'results_l.txt')
         print 'Twitter classifier:'
         print self.classifier.predict_testing_data('tweets', tweets_testing_features, TESTING_LABELS_FILE, 'results_t.txt')
-        print 'Facebook classifier:'
-        print self.classifier.predict_testing_data('fb', fb_testing_features, TESTING_LABELS_FILE, 'results_fb.txt')
-        print 'Early fusion classifier:'
-        print self.classifier.predict_testing_data('all', all_testing_features, TESTING_LABELS_FILE, 'results.txt')
+        
+        tweets_result_labels = np.loadtxt('results_t.txt', delimiter=',')
+        linkedin_result_labels = np.loadtxt('results_l.txt', delimiter=',')
 
+        print 'Late fusion classifier:'
+        print self.classifier.predict_late_fusion_testing_data([tweets_result_labels, linkedin_result_labels], TESTING_LABELS_FILE, 'result.txt')
 
 if __name__ == '__main__':
     print 'Loading required...'
